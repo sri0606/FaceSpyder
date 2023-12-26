@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets)
 
 set(OpenCV_DIR "C:/Program Files/opencv/build")
 
@@ -37,11 +37,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         video.h video.cpp
         imagematching.h imagematching.cpp
         itemdetectedview.h itemdetectedview.cpp
-        authwindow.h authwindow.cpp
-        authwindow.h authwindow.cpp authwindow.ui
         authwindow.h authwindow.cpp authwindow.ui
         spyderwindow.h spyderwindow.cpp spyderwindow.ui
         menubutton.h menubutton.cpp
+        videoplayer.h videoplayer.cpp
+        facedetectionworker.h facedetectionworker.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET FaceSpyder APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -61,7 +61,8 @@ else()
     endif()
 endif()
 
-target_link_libraries(FaceSpyder PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV_LIBS})
+target_link_libraries(FaceSpyder PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::MultimediaWidgets ${OpenCV_LIBS})
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

@@ -2,25 +2,23 @@
 #define ITEM_H
 
 class FaceRecognition;
-class FaceRecognitionView;
 /**
 *Base class for the items taht are detectable using OpenCV library
 */
 class Item
 {
 protected:
-    FaceRecognition* mFaceRecognition;
     QString mPath;
-    // FaceRecognitionView* mParentView;
+    FaceRecognition* mFaceRecognition;
+
 public:
-    Item( const QString& filename,FaceRecognition* facrec);
+    Item(const QString& filename,FaceRecognition* facrec);
     Item() = delete; // Disable the default constructor.
     Item(const Item&) = delete; // Disable the copy constructor.
     Item& operator=(const Item&) = delete; // Disable the copy assignment operator.
     virtual ~Item() {}
     virtual void OnPaint(std::shared_ptr<QPainter> painter){};
-    virtual void Process();
-    virtual void DetectFaces() {};
+    // virtual void Process();
 
     /**
      * Get the pointer to the FaceRecognition object
@@ -40,6 +38,7 @@ public:
     QString GetPath() { return mPath; }
 
     virtual void Update() {};
+    virtual void setProcessedImage(QPixmap pixmap){}
 };
 
 #endif // ITEM_H

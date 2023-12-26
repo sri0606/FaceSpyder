@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include <memory.h>
 
+
 /// Frame duration in milliseconds
 const int FrameDuration = 30;
 

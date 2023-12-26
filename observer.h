@@ -9,15 +9,10 @@
  * an observer in the observer pattern.
  */
 class Observer {
-private:
 
-    // wxPanel* mParentPanel;
 protected:
-
     //Picture we are observing
     std::shared_ptr<FaceRecognition> mFaceRecognition;
-
-
 public:
     /// Copy constructor (disabled)
     Observer(const Observer&) = delete;
@@ -28,10 +23,6 @@ public:
     /// Assignment operator
     void operator=(const Observer&) = delete;
 
-    //void OnMouseMove(wxMouseEvent& event);
-    //void OnLeftUp(wxMouseEvent& event);
-    //void OnLeftDown(wxMouseEvent& event);
-    //void OnDoubleClick(wxMouseEvent& event);
     virtual void paintEvent(QPaintEvent *event)=0;
 
     /// This function is called to update any observers
@@ -46,6 +37,8 @@ public:
     std::shared_ptr<FaceRecognition> GetFaceRecognition() { return mFaceRecognition; }
 
     virtual void addItemDetectedView(cv::Mat pixmap){}
+
+    virtual void Clear(){}
 };
 
 

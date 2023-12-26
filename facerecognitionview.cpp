@@ -2,7 +2,8 @@
 #include "facerecognitionview.h"
 #include "FaceRecognition.h"
 #include "Observer.h"
-
+#include <QLayoutItem>
+#include <QLayout>
 
 /// Frame duration in milliseconds
 const int FrameDuration = 30;
@@ -49,4 +50,19 @@ void FaceRecognitionView::paintEvent(QPaintEvent *event)
 
     // End the painting operations
     painter->end();
+}
+
+
+void FaceRecognitionView::Clear(){
+    QLayout *layout = this->layout();
+    if (layout != nullptr) {
+        QLayoutItem *item;
+        while ((item = layout->takeAt(0)) != nullptr) {
+            // If the item is a widget, remove and delete it
+            if (QWidget *widget = item->widget()) {
+                widget->hide(); // Optional: hide the widget before deletion
+                delete widget;
+            }
+        }
+    }
 }

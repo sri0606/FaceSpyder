@@ -38,7 +38,7 @@ void ItemDetectedView::createContextMenu()
     // Show the context menu and get the selected action
     QAction* selectedAction = contextMenu.exec(QCursor::pos());
 
-    // Process the selected action if needed
+    // Process the selected action
     if (selectedAction) {
         if (selectedAction == action1) {
             // Handle Option 1
@@ -55,11 +55,8 @@ QPixmap ItemDetectedView::GetPixmap(){
 }
 
 void ItemDetectedView::SetPixmap(const QPixmap& pixmap) {
-    // Assuming you have a QLabel or other widget to display the pixmap
-    // QLabel* imageLabel = new QLabel(this);
-    // imageLabel->setPixmap(pixmap);
 
-    QLabel* imageLabel = findChild<QLabel*>();  // Assuming you have only one QLabel
+    QLabel* imageLabel = findChild<QLabel*>();
     if (imageLabel) {
         imageLabel->setPixmap(pixmap);
     }
@@ -80,7 +77,6 @@ void ItemDetectedView::mousePressEvent(QMouseEvent* event)
 
 void ItemDetectedView::mouseReleaseEvent(QMouseEvent* event)
 {
-    // Additional handling if needed
 
     // Pass the event to the base class implementation
     QWidget::mouseReleaseEvent(event);

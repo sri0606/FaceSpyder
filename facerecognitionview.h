@@ -16,12 +16,8 @@ private:
     virtual void paintEvent(QPaintEvent *event) override;
 
 public:
-    //void OnMouseMove(wxMouseEvent& event);
-    //void OnLeftUp(wxMouseEvent& event);
-    //void OnLeftDown(wxMouseEvent& event);
-    //void OnDoubleClick(wxMouseEvent& event);
-
     void UpdateObserver() override;
+     virtual void Clear() override;
 };
 
 #endif // FACERECOGNITIONVIEW_H

@@ -2,25 +2,20 @@
 #define VIDEO_H
 
 #include "item.h"
-
+#include "observer.h"
+#include "videoplayer.h"
 class Video : public Item
 {
 public:
     Video();
 private:
-    //image with the detected faces highlighted
-    int mCurrentFrameIndex=0;
-
-    std::vector<QPixmap> mFrames;
+    std::unique_ptr<VideoPlayer> mVideoPlayer;
 
 public:
 
-    Video(const QString& filename, FaceRecognition* facrec);
-    virtual void Process() override;
+    Video(const QString& filename, FaceRecognition* facrec, QWidget*);
     virtual void OnPaint(std::shared_ptr<QPainter> painter) override;
-    virtual void DetectFaces() override;
-    void AddCurrentFrame(cv::Mat currentMatFrame);
-    virtual void Update() override;
+
 };
 
 #endif // VIDEO_H

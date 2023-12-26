@@ -1,6 +1,8 @@
 #include "imagematching.h"
 #include <opencv2/opencv.hpp>
 
+const std::string faceCascadePath = "C:/Program Files/opencv/sources/data/haarcascades/haarcascade_frontalface_default.xml";
+
 /**
  * @brief QImageToMat
  * @param image
@@ -114,3 +116,36 @@ bool CompareImagesByHistogram(const QPixmap& pixmap1, const QPixmap& pixmap2, do
     return bhattacharyya < threshold;
 }
 
+/**
+ * Detects if there is at least one face in the image.
+ *
+ * @param image The image in which to detect faces.
+ * @return `true` if at least one face is detected, `false` otherwise.
+ */
+bool hasFace(const cv::Mat& image) {
+    // Check if the input image is empty
+    if (image.empty()) {
+        std::cerr << "Input image is empty." << std::endl;
+        return false;
+    }
+
+    // Initialize face detection classifier
+    cv::CascadeClassifier face_cascade;
+    // Load pre-trained XML classifier for face detection
+    if (!face_cascade.load(faceCascadePath)) {
+        std::cerr << "Error loading face cascade." << std::endl;
+        return false;
+    }
+
+    // Convert the image to grayscale for detection
+    cv::Mat gray_image;
+    cv::cvtColor(image, gray_image, cv::COLOR_BGR2GRAY);
+    cv::equalizeHist(gray_image, gray_image);
+
+    // Detect faces
+    std::vector<cv::Rect> faces;
+    face_cascade.detectMultiScale(gray_image, faces, 1.1, 3, 0);
+
+    // Return true if at least one face is detected
+    return !faces.empty();
+}

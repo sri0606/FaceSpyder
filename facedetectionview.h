@@ -1,13 +1,13 @@
 #ifndef FACEDETECTIONVIEW_H
 #define FACEDETECTIONVIEW_H
 
-#include <QScrollArea>
+#include <QWidget>
 #include "Observer.h"
 #include "itemdetectedview.h"
 #include <QGridLayout>
 
 
-class FaceDetectionView final : public QScrollArea, public Observer
+class FaceDetectionView final : public QWidget, public Observer
 {
     Q_OBJECT
 public:
@@ -25,11 +25,12 @@ private:
     std::vector<ItemDetectedView*> mDetectedViews;
 
 public:
-    static const int Height = 90;      ///< Height to make this window
-
     void UpdateObserver() override;
     virtual void addItemDetectedView(cv::Mat pixmap) override;
     void SaveDetectedFaces(const QString& folderPath);
+    void cleanDetectedViews();
+    bool IsFacesDetected(){return mDetectedViews.size()!=0;}
+    virtual void Clear() override;
 };
 
 #endif // FACEDETECTIONVIEW_H

@@ -5,20 +5,22 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QPixmap>
+
 /**
  * Constructor
  * @param parent
  *
  */
 FaceDetectionView::FaceDetectionView(QWidget *parent)
-    : QScrollArea{parent},Observer{parent}
+    : QWidget{parent},Observer{parent}
 {
     setAttribute(Qt::WA_StyledBackground);
 
     setStyleSheet("background-color: rgb(106, 117, 109);");
+
     // Create a grid layout
     mGridLayout = new QGridLayout(this);
-    mGridLayout->setSpacing(5);
+    mGridLayout->setSpacing(3);
 
     setLayout(mGridLayout);
 }
@@ -31,9 +33,39 @@ void FaceDetectionView::UpdateObserver()
     update();
 }
 
-void FaceDetectionView::addItemDetectedView(cv::Mat faceImage){
+void FaceDetectionView::addItemDetectedView(cv::Mat faceImage)
+{
     auto faceBitmap = MatToQPixmap(faceImage);
+    ItemDetectedView* viewWidget = new ItemDetectedView(this, faceBitmap);
+    mDetectedViews.push_back(viewWidget);
 
+    //add to grid layout
+    int minImageWidth = 250;
+    int minImageHeight = 275;
+
+    // Calculate the number of rows and columns in the grid layout
+    auto pair = GetNumofRowsCols(width(), height());
+    int cols = pair.second;
+    int index = static_cast<int>(mDetectedViews.size())-1;
+
+    QPixmap pixmap = viewWidget->GetPixmap();
+    // Set a fixed size for each widget
+    viewWidget->setFixedSize(minImageWidth, minImageHeight);
+
+    viewWidget->SetPixmap(pixmap.scaled(viewWidget->size(), Qt::KeepAspectRatio));
+    viewWidget->setStyleSheet("background-color:red");
+    viewWidget->setAttribute(Qt::WA_StyledBackground);
+    mGridLayout->addWidget(viewWidget, index / cols, index % cols);
+}
+
+/**
+ * @brief cleanDetectedViews: clean duplicates
+ * @return
+ */
+void FaceDetectionView::cleanDetectedViews()
+{
+    cv::Mat faceImage;
+    auto faceBitmap = MatToQPixmap(faceImage);
     for (auto detectedFace : mDetectedViews)
     {
         if (CompareImagesByHistogram(detectedFace->GetPixmap(), faceBitmap) ){//|| CompareImagesByFeatureMatching(*detectedFace, faceBitmap)) {
@@ -43,9 +75,6 @@ void FaceDetectionView::addItemDetectedView(cv::Mat faceImage){
             continue;
         }
     }
-    // Assuming mParent is a QWidget* and faceBitmap is a QPixmap
-    ItemDetectedView* view = new ItemDetectedView(this, faceBitmap);
-    mDetectedViews.push_back(view);
 }
 
 /**
@@ -56,31 +85,6 @@ void FaceDetectionView::paintEvent(QPaintEvent *event)
 {
     // Call the base class implementation
     QWidget::paintEvent(event);
-
-
-    if (!mDetectedViews.empty()) {
-        int minImageWidth = 250;
-        int minImageHeight = 275;
-
-        // Calculate the number of rows and columns in the grid layout
-        auto pair = GetNumofRowsCols(width(), height());
-        int rows = pair.first;
-        int cols = pair.second;
-
-        // Iterate through the images and add them to the grid layout
-        for (int i = 0; i < mDetectedViews.size(); ++i) {
-            // Add the ItemDetectedView directly to the QGridLayout
-            auto viewWidget = mDetectedViews[i];
-            QPixmap pixmap = viewWidget->GetPixmap();  // Assuming GetPixmap() returns the QPixmap instance
-            // Set a fixed size for each widget
-            viewWidget->setFixedSize(minImageWidth, minImageHeight);
-
-            viewWidget->SetPixmap(pixmap.scaled(viewWidget->size(), Qt::KeepAspectRatio));
-            viewWidget->setStyleSheet("background-color:red");
-            viewWidget->setAttribute(Qt::WA_StyledBackground);
-            mGridLayout->addWidget(viewWidget, i / cols, i % cols);
-        }
-    }
 }
 
 /**
@@ -134,3 +138,33 @@ std::pair<int,int> FaceDetectionView::GetNumofRowsCols(int contextWidth, int con
     }
     return std::pair<int,int>(2, 3);
 }
+
+void FaceDetectionView::Clear() {
+    if (mGridLayout != nullptr) {
+        // Remove all items in the layout
+        QLayoutItem* item;
+        while ((item = mGridLayout->takeAt(0)) != nullptr) {
+            if (item->widget()) {
+                // Delete the widget
+                delete item->widget();
+            } else {
+                // Delete the layout item
+                delete item;
+            }
+        }
+        // Delete the old layout
+        delete mGridLayout;
+    }
+
+    // Clear the list of detected views
+    mDetectedViews.clear();
+
+    // Create a new grid layout
+    mGridLayout = new QGridLayout(this);
+    mGridLayout->setSpacing(3);
+    setLayout(mGridLayout);
+
+    // Update the observer
+    UpdateObserver();
+}
+

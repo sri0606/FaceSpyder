@@ -3,15 +3,15 @@
 #include "Observer.h"
 #include "image.h"
 #include "video.h"
-#include "facedetectionview.h"
-
+#include "facedetectionworker.h"
+#include <QThread>
 
 using namespace std;
 
 /**
  * FaceRecognition Constructor
  */
-FaceRecognition::FaceRecognition()
+FaceRecognition::FaceRecognition(QObject *parent)
 {
 
 }
@@ -27,26 +27,60 @@ void FaceRecognition::OnPaint(std::shared_ptr<QPainter> painter)
     }
 }
 
-
-
-
-
 void FaceRecognition::LoadImage(const QString& filename)
 {
     mItem = std::make_unique<Image>(filename,this);
-    mItem->Process();
+    // In your main class (FaceDetectionView)
+    FaceDetectionWorker* worker = new FaceDetectionWorker(this);
+    QThread* thread = new QThread(this);
+
+    worker->moveToThread(thread);
+
+    connect(thread, &QThread::started, worker, &FaceDetectionWorker::processImage);
+    connect(worker, &FaceDetectionWorker::finished, thread, &QThread::quit);
+    connect(worker, &FaceDetectionWorker::finished, worker, &QObject::deleteLater);
+    connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+
+    // Connect the signal for detected faces to a slot in your main class
+    connect(worker, &FaceDetectionWorker::faceDetected, this, &FaceRecognition::AddDetectedFace);
+
+    // Start the thread
+    thread->start();
 }
 
-void FaceRecognition::LoadVideo( const QString& filename)
+void FaceRecognition::LoadVideo( const QString& filename, QWidget* parent)
 {
-    mItem = std::make_unique<Video>(filename, this);
-    mItem->Process();
+    mItem = std::make_unique<Video>(filename, this, parent);
+
+    // In your main class (FaceDetectionView)
+    FaceDetectionWorker* worker = new FaceDetectionWorker(this);
+    QThread* thread = new QThread(this);
+
+    worker->moveToThread(thread);
+
+    connect(thread, &QThread::started, worker, &FaceDetectionWorker::processVideo);
+    connect(worker, &FaceDetectionWorker::finished, thread, &QThread::quit);
+    connect(worker, &FaceDetectionWorker::finished, worker, &QObject::deleteLater);
+    connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+
+    // Connect the signal for detected faces to a slot in your main class
+    connect(worker, &FaceDetectionWorker::faceDetected, this, &FaceRecognition::AddDetectedFace);
+
+    // Start the thread
+    thread->start();
 }
 
+void FaceRecognition::AddDetectedFace(cv::Mat faceImage){
+    for (auto observer: mObservers){
+        observer->addItemDetectedView(faceImage);
+    }
+}
 void FaceRecognition::Clear()
 {
-    mItem= nullptr;
-    mObservers.clear();
+    mItem.reset();
+    for (auto observer: mObservers){
+        observer->Clear();
+    }
 }
 
 /**
@@ -83,18 +117,13 @@ void FaceRecognition::UpdateObservers()
     }
 }
 
-/**
- * @brief FaceRecognition::AddDetectedFace
- * @param faceImage
- */
-void FaceRecognition::AddDetectedFace(cv::Mat faceImage)
-{
-    for (auto observer:mObservers){
-        observer->addItemDetectedView(faceImage);
-    }
-
+void FaceRecognition::setProcessedImage(QPixmap pixmap){
+    mItem->setProcessedImage(pixmap);
 }
 
+void FaceRecognition::setProcessedVideo(){
+    // mItem->setProcessedItem(pixmap);
+}
 /**
  * Handle updates for animation
  * @param elapsed The time since the last update

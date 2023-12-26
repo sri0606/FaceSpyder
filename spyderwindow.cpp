@@ -3,6 +3,8 @@
 #include "FaceRecognition.h"
 #include <QFileDialog>
 #include <QLabel>
+#include <QScrollArea>
+#include <QMessageBox>
 #include <memory.h>
 
 SpyderWindow::SpyderWindow(QWidget *parent)
@@ -18,16 +20,19 @@ SpyderWindow::SpyderWindow(QWidget *parent)
     auto mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
+    auto scrollArea = new QScrollArea(this);
     // Add widgets to the main layout
-    mFaceRecognitionView = new FaceRecognitionView(this);
+    mFaceRecognitionView = new FaceRecognitionView(scrollArea);
     mFaceDetectionView = new FaceDetectionView(this);
+    scrollArea->setWidget(mFaceDetectionView);
+    scrollArea->setWidgetResizable(true);
 
     mFaceRecognition = std::make_shared<FaceRecognition>();
     mFaceRecognitionView->SetFaceRecognition(mFaceRecognition);
     mFaceDetectionView->SetFaceRecognition(mFaceRecognition);
 
     mainLayout->addWidget(mFaceRecognitionView, 3);  // 75%
-    mainLayout->addWidget(mFaceDetectionView, 2);
+    mainLayout->addWidget(scrollArea, 2);
 
     auto menuLayout = new QVBoxLayout(this);
     menuLayout->setContentsMargins(0, 0, 0, 0);
@@ -45,30 +50,33 @@ SpyderWindow::SpyderWindow(QWidget *parent)
     menuTopLayout->setContentsMargins(0, 20, 0, 2);
     int buttonSpacing = 15;
 
-    homeButton = new MenuButton("Home",this);
+    // homeButton = new MenuButton("Home",this);
     imageButton = new MenuButton("Open Image",this);
     videoButton = new MenuButton("Open Video",this);
+    saveDetectedFacesButton= new MenuButton("Save detected faces",this);
 
-    menuTopLayout->addWidget(homeButton);
-    menuTopLayout->addSpacing(buttonSpacing);
+    saveDetectedFacesButton->setDisabled(true);
+    // menuTopLayout->addWidget(homeButton);
+    // menuTopLayout->addSpacing(buttonSpacing);
     menuTopLayout->addWidget(imageButton);
     menuTopLayout->addSpacing(buttonSpacing);
     menuTopLayout->addWidget(videoButton);
+    menuTopLayout->addSpacing(buttonSpacing);
+    menuTopLayout->addWidget(saveDetectedFacesButton);
     // Add a stretch to push menuTopLayout to the top
     menuTopLayout->addStretch();
 
     auto menuBottomLayout = new QVBoxLayout(this);
     menuBottomLayout->setContentsMargins(0, 0, 0, 25);
 
-    settingsButton = new MenuButton("Settings",this);
+    //settingsButton = new MenuButton("Settings",this);
     newSessionButton = new QPushButton(this);
-    newSessionButton->setStyleSheet("background-color:green; font-size:15px; color:white;border-radius:5px;padding:3px 3px 3px 3px");
+    newSessionButton->setStyleSheet("background-color:green; font-size:15px; color:white;border-radius:5px;padding:10px");
     newSessionButton->setText("New Spyder Session...");
-    newSessionButton->setEnabled(true);  // Make sure it is enabled
 
     menuBottomLayout->addWidget(newSessionButton);
     menuBottomLayout->addSpacing(10);
-    menuBottomLayout->addWidget(settingsButton);
+    //menuBottomLayout->addWidget(settingsButton);
     menuBottomLayout->addSpacing(10);
 
     menuLayout->addSpacing(10);
@@ -81,10 +89,11 @@ SpyderWindow::SpyderWindow(QWidget *parent)
     containerLayout->addLayout(menuLayout,1);
     containerLayout->addLayout(mainLayout,5);
 
-    connect(homeButton, &MenuButton::clicked, this, &SpyderWindow::onHomeButtonClicked);
+    // connect(homeButton, &MenuButton::clicked, this, &SpyderWindow::onHomeButtonClicked);
     connect(imageButton, &MenuButton::clicked, this, &SpyderWindow::onImageButtonClicked);
     connect(videoButton, &MenuButton::clicked, this, &SpyderWindow::onVideoButtonClicked);
-    connect(settingsButton, &MenuButton::clicked, this, &SpyderWindow::onSettingsButtonClicked);
+    connect(saveDetectedFacesButton, &MenuButton::clicked, this, &SpyderWindow::onSaveFacesButtonClicked);
+    //connect(settingsButton, &MenuButton::clicked, this, &SpyderWindow::onSettingsButtonClicked);
     connect(newSessionButton, &QPushButton::clicked, this, &SpyderWindow::onNewSessionButtonClicked);
 
 }
@@ -108,6 +117,9 @@ void SpyderWindow::onImageButtonClicked() {
 
         mFaceRecognition->LoadImage(fileName);
         mFaceRecognition->UpdateObservers();
+        saveDetectedFacesButton->setDisabled(false);
+        imageButton->setDisabled(true);
+        videoButton->setDisabled(true);
     }
 }
 
@@ -119,8 +131,11 @@ void SpyderWindow::onVideoButtonClicked() {
 
     if (!fileName.isEmpty()) {
 
-        mFaceRecognition->LoadVideo(fileName);
+        mFaceRecognition->LoadVideo(fileName,mFaceRecognitionView);
         mFaceRecognition->UpdateObservers();
+        saveDetectedFacesButton->setDisabled(false);
+        imageButton->setDisabled(true);
+        videoButton->setDisabled(true);
     }
 }
 
@@ -129,27 +144,27 @@ void SpyderWindow::onSettingsButtonClicked() {
 }
 
 void SpyderWindow::onNewSessionButtonClicked() {
-    mFaceRecognitionView = new FaceRecognitionView(this);
-    mFaceDetectionView = new FaceDetectionView(this);
-
-    // Handle the New Session button click
-    mFaceRecognition = std::make_shared<FaceRecognition>();
-    mFaceRecognitionView->SetFaceRecognition(mFaceRecognition);
-    mFaceDetectionView->SetFaceRecognition(mFaceRecognition);
-
+    mFaceRecognition->Clear();
+    imageButton->setDisabled(false);
+    videoButton->setDisabled(false);
+    saveDetectedFacesButton->setDisabled(true);
     update();
 }
 
 void SpyderWindow::onSaveFacesButtonClicked() {
-    QString folderPath = QFileDialog::getExistingDirectory(this,
-                                                           tr("Select Folder to Save Detected Faces"),
-                                                           QString(),
-                                                           QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-
-    if (folderPath.isEmpty()) {
-        // User canceled or didn't select a folder
+    if(mFaceDetectionView->IsFacesDetected()){
+        QString folderPath = QFileDialog::getExistingDirectory(this,
+                                                               tr("Select Folder to Save Detected Faces"),
+                                                               QString(),
+                                                               QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+        if (folderPath.isEmpty()) {
+            // User canceled or didn't select a folder
+            return;
+        }
+        mFaceDetectionView->SaveDetectedFaces(folderPath);
+    }
+    else{
+        QMessageBox::critical(nullptr, "Error", "No faces Detected!.", QMessageBox::Ok);
         return;
     }
-
-    mFaceDetectionView->SaveDetectedFaces(folderPath);
 }

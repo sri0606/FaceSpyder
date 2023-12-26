@@ -10,10 +10,5 @@ Item::Item(const QString& filename, FaceRecognition* facrec)
 {
     mPath = filename;
     mFaceRecognition = facrec;
-    // mParentView = parent;
-}
-
-void Item::Process()
-{
 }
 

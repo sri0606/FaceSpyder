@@ -32,14 +32,13 @@ void AuthWindow::on_signupButton_clicked()
 {
     //if (mUsername and mPassword{
     //}
-    // just emit the signedUp signal
+    // emit the signedUp signal
     emit signedUp(mUsername);
 }
 
 
 void AuthWindow::on_skipButton_clicked()
 {
-    // For this example, display a message and emit a signal to move to the next window
     QMessageBox::information(this, "Skipped", "Skipping login/signup");
     // Emit a signal to indicate skipping
     emit loggedIn("Guest");

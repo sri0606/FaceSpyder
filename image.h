@@ -17,9 +17,8 @@ private:
 public:
 
     Image( const QString& filename, FaceRecognition* facrec);
-    virtual void Process() override;
     virtual void OnPaint(std::shared_ptr<QPainter> painter) override;
-    virtual void DetectFaces() override;
+    virtual void setProcessedImage(QPixmap pixmap) override;
 };
 
 #endif // IMAGE_H
