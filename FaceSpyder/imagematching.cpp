@@ -1,8 +1,7 @@
 #include "imagematching.h"
 #include <opencv2/opencv.hpp>
 
-const std::string faceCascadePath
-    = "C:/Program Files/opencv/sources/data/haarcascades/haarcascade_frontalface_default.xml";
+const std::string faceCascadePath= "resources/opencv/haarcascade_frontalface_default.xml";
 
 /**
  * @brief QImageToMat
