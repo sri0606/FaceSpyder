@@ -24,6 +24,7 @@ signals:
     void leftClicked();
     void rightClicked();
     void doubleClicked();
+    void removeRequested(ItemDetectedView* view);
 };
 
 #endif // ITEMDETECTEDVIEW_H

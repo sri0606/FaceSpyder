@@ -13,6 +13,7 @@ Image::Image(const QString& filename, FaceRecognition* facrec):Item(filename, fa
 
 void Image::setProcessedImage(QPixmap pixmap){
     mImageDetected=pixmap;
+    mFaceRecognition->UpdateObservers();
 }
 
 void Image::OnPaint(std::shared_ptr<QPainter> painter)

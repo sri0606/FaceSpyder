@@ -37,25 +37,30 @@ void FaceDetectionView::addItemDetectedView(cv::Mat faceImage)
 {
     auto faceBitmap = MatToQPixmap(faceImage);
     ItemDetectedView* viewWidget = new ItemDetectedView(this, faceBitmap);
-    mDetectedViews.push_back(viewWidget);
+    connect(viewWidget, &ItemDetectedView::removeRequested, this, &FaceDetectionView::RemoveDetectedView);
 
     //add to grid layout
-    int minImageWidth = 250;
-    int minImageHeight = 275;
-
-    // Calculate the number of rows and columns in the grid layout
-    auto pair = GetNumofRowsCols(width(), height());
-    int cols = pair.second;
-    int index = static_cast<int>(mDetectedViews.size())-1;
+    int minImageWidth = 235;
+    int minImageHeight = 260;
+    int totalColumns=3;
 
     QPixmap pixmap = viewWidget->GetPixmap();
     // Set a fixed size for each widget
     viewWidget->setFixedSize(minImageWidth, minImageHeight);
 
     viewWidget->SetPixmap(pixmap.scaled(viewWidget->size(), Qt::KeepAspectRatio));
-    viewWidget->setStyleSheet("background-color:red");
+    viewWidget->setStyleSheet("color:white;background-color: rgb(16, 7, 20)");
     viewWidget->setAttribute(Qt::WA_StyledBackground);
-    mGridLayout->addWidget(viewWidget, index / cols, index % cols);
+    mGridLayout->addWidget(viewWidget,mViewCount/totalColumns,mViewCount%totalColumns);
+    mViewCount++;
+}
+
+/**
+ * @brief IsFacesDetected: checks if any faces detected yet
+ * @return
+ */
+bool FaceDetectionView::IsFacesDetected(){
+    return mViewCount!=0;
 }
 
 /**
@@ -66,13 +71,23 @@ void FaceDetectionView::cleanDetectedViews()
 {
     cv::Mat faceImage;
     auto faceBitmap = MatToQPixmap(faceImage);
-    for (auto detectedFace : mDetectedViews)
-    {
-        if (CompareImagesByHistogram(detectedFace->GetPixmap(), faceBitmap) ){//|| CompareImagesByFeatureMatching(*detectedFace, faceBitmap)) {
-            return;
-        }
-        else {
-            continue;
+    for (int i = 0; i < mGridLayout->count(); ++i) {
+        QLayoutItem *item = mGridLayout->itemAt(i);
+
+        // Check if the item is a widget
+        if (QWidget *widget = item->widget()) {
+            // Cast it to your custom widget type
+            ItemDetectedView *detectedView = qobject_cast<ItemDetectedView*>(widget);
+
+            // Check if the cast was successful
+            if (detectedView) {
+                if (CompareImagesByHistogram(detectedView->GetPixmap(), faceBitmap) ){//|| CompareImagesByFeatureMatching(*detectedFace, faceBitmap)) {
+                    return;
+                }
+                else {
+                    continue;
+                }
+            }
         }
     }
 }
@@ -92,8 +107,6 @@ void FaceDetectionView::paintEvent(QPaintEvent *event)
 */
 void FaceDetectionView::SaveDetectedFaces(const QString& folderPath) {
     QImage image;
-    int i = 1;
-
     // Create a subfolder in the selected folder
     QString subfolderName = QFileInfo(mFaceRecognition->GetItemPath()).baseName()+"_facespyder";
     QString subfolderPath = folderPath + QDir::separator() + subfolderName;
@@ -102,41 +115,32 @@ void FaceDetectionView::SaveDetectedFaces(const QString& folderPath) {
         QMessageBox::critical(nullptr, "Error", "Failed to create the folder.", QMessageBox::Ok);
         return;
     }
+    for (int i = 0; i < mGridLayout->count(); ++i) {
+        QLayoutItem *item = mGridLayout->itemAt(i);
 
-    for (auto detectedFace : mDetectedViews) {
-        auto pixmap = detectedFace->GetPixmap();
-        image = pixmap.toImage();
+        // Check if the item is a widget
+        if (QWidget *widget = item->widget()) {
+            // Cast it to your custom widget type
+            ItemDetectedView *detectedView = qobject_cast<ItemDetectedView*>(widget);
 
-        QString filename = QString("detected_face_%1.png").arg(i);
-        QString filePath = subfolderPath + QDir::separator() + filename;
+            // Check if the cast was successful
+            if (detectedView) {
+                auto pixmap = detectedView->GetPixmap();
+                image = pixmap.toImage();
 
-        if (!image.save(filePath, "PNG")) {
-            // Handle the error, e.g., show an error message
-            QMessageBox::critical(nullptr, "Error", "Failed to save image.", QMessageBox::Ok);
-            return;
+                QString filename = QString("detected_face_%1.png").arg(i);
+                QString filePath = subfolderPath + QDir::separator() + filename;
+
+                if (!image.save(filePath, "PNG")) {
+                    // Handle the error, e.g., show an error message
+                    QMessageBox::critical(nullptr, "Error", "Failed to save image.", QMessageBox::Ok);
+                    return;
+                }
+            }
         }
-        i++;
     }
 
     QMessageBox::information(nullptr, "Success", "Images saved successfully.", QMessageBox::Ok);
-}
-
-std::pair<int,int> FaceDetectionView::GetNumofRowsCols(int contextWidth, int contextHeight) {
-    int minImageWidth = 250;
-    int minImageHeight = 275;
-    int maxImageWidth = contextWidth;
-    int maxImageHeight = contextHeight;
-    size_t numFaces = mDetectedViews.size();
-
-    int rows=1;
-    int columns = 8;
-
-    int maxScrollLengthHorizontal = 1.5*contextWidth;
-    // 8 * 50 > 300
-    if (numFaces * minImageWidth > maxScrollLengthHorizontal) {
-        rows = static_cast<int>(numFaces * minImageWidth / maxScrollLengthHorizontal);
-    }
-    return std::pair<int,int>(2, 3);
 }
 
 void FaceDetectionView::Clear() {
@@ -155,10 +159,6 @@ void FaceDetectionView::Clear() {
         // Delete the old layout
         delete mGridLayout;
     }
-
-    // Clear the list of detected views
-    mDetectedViews.clear();
-
     // Create a new grid layout
     mGridLayout = new QGridLayout(this);
     mGridLayout->setSpacing(3);
@@ -168,3 +168,9 @@ void FaceDetectionView::Clear() {
     UpdateObserver();
 }
 
+void FaceDetectionView::RemoveDetectedView(ItemDetectedView* view) {
+    if (view) {
+        mGridLayout->removeWidget(view);
+        view->deleteLater();
+    }
+}

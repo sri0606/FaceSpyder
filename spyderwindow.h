@@ -9,10 +9,6 @@
 #include "FaceRecognitionView.h"
 #include "facerecognition.h"
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class SpyderWindow;
-}
 
 class SpyderWindow : public QWidget
 {
@@ -21,7 +17,7 @@ class SpyderWindow : public QWidget
 public:
     explicit SpyderWindow(QWidget *parent = nullptr);
     ~SpyderWindow();
-
+    // void processCloseEvent();
 
 private slots:
     void onHomeButtonClicked();
@@ -29,11 +25,11 @@ private slots:
     void onVideoButtonClicked();
     void onSettingsButtonClicked();
     void onNewSessionButtonClicked();
+    void onAboutButtonClicked();
     void onSaveFacesButtonClicked();
 
 
 private:
-    Ui::SpyderWindow *ui;
     std::shared_ptr<FaceRecognition> mFaceRecognition;
     // std::unique_ptr<FaceRecognitionView> mFaceRecognitionView;
     // std::unique_ptr<FaceDetectionView> mFaceDetectionView;
@@ -47,6 +43,7 @@ private:
     MenuButton* settingsButton;
     MenuButton* saveDetectedFacesButton;
     QPushButton* newSessionButton;
+    QPushButton* aboutButton;
 };
 
 #endif // SPYDERWINDOW_H

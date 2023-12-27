@@ -15,6 +15,7 @@ FaceDetectionWorker::FaceDetectionWorker(FaceRecognition* faceRecognition): mFac
 *   Detect the faces in the image
 */
 void FaceDetectionWorker::processImage(){
+    if(!mShouldStop){
     // Load an image
     cv::Mat image = cv::imread(mFaceRecognition->GetItemPath().toStdString());
     if (image.empty()) {
@@ -41,23 +42,27 @@ void FaceDetectionWorker::processImage(){
     std::vector<cv::Rect> faces;
 
     face_cascade.detectMultiScale(gray_image, allFaces, 1.1, 3, 0);
-
-    // Extract and display detected faces
-    for (size_t i = 0; i < allFaces.size(); i++) {
-        // Crop the detected face region
-        cv::Mat face = image(allFaces[i]);
-        if (hasFace(face)){
-            emit faceDetected(face);
-            faces.push_back(allFaces[i]);
+    if(!mShouldStop){
+        // Extract and display detected faces
+        for (size_t i = 0; i < allFaces.size(); i++) {
+            // Crop the detected face region
+            cv::Mat face = image(allFaces[i]);
+            if (hasFace(face)){
+                emit faceDetected(face);
+                faces.push_back(allFaces[i]);
+            }
         }
     }
+    if(!mShouldStop){
+        // Loop through the detected faces and draw bounding boxes
+        for (const cv::Rect& face : faces) {
+            cv::rectangle(image, face, cv::Scalar(10, 35, 215), 3);  // Draw a red rectangle around the face
+        }
 
-    // Loop through the detected faces and draw bounding boxes
-    for (const cv::Rect& face : faces) {
-        cv::rectangle(image, face, cv::Scalar(10, 35, 215), 3);  // Draw a red rectangle around the face
+        auto imageDetected = MatToQPixmap(image);
+        mFaceRecognition->setProcessedImage(imageDetected);
     }
-    auto imageDetected = MatToQPixmap(image);
-    mFaceRecognition->setProcessedImage(imageDetected);
+    }
 }
 
 /**
@@ -65,6 +70,7 @@ void FaceDetectionWorker::processImage(){
 */
 void FaceDetectionWorker::processVideo()
 {
+    if(!mShouldStop){
     // Open a video file or a camera stream
     cv::VideoCapture videoCapture(mFaceRecognition->GetItemPath().toStdString());  // or use 0 for the default camera
 
@@ -82,7 +88,7 @@ void FaceDetectionWorker::processVideo()
         return;
     }
 
-    while (true) {
+    while (true && !mShouldStop) {
 
         cv::Mat currentMatFrame;
         // Read a frame from the video stream
@@ -123,4 +129,5 @@ void FaceDetectionWorker::processVideo()
     }
     // Release the VideoCapture
     videoCapture.release();
+    }
 }

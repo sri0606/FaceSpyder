@@ -1,8 +1,12 @@
 #include "pch.h"
 #include "itemdetectedview.h"
+#include "imagematching.h"
 #include <QLabel>
 #include <QLayout>
 #include <QMenu>
+#include <QApplication>
+#include <QClipboard>
+
 ItemDetectedView::ItemDetectedView(QWidget *parent,const QPixmap& pixmap)
     : QWidget{parent}
 {
@@ -31,21 +35,27 @@ void ItemDetectedView::createContextMenu()
     QMenu contextMenu(this);
 
     // Add actions to the context menu
-    QAction* action1 = contextMenu.addAction("Option 1");
-    QAction* action2 = contextMenu.addAction("Option 2");
-    QAction* action3 = contextMenu.addAction("Option 3");
+    QAction* copyAction = contextMenu.addAction("Copy");
+    QAction* sharpenAction = contextMenu.addAction("Sharpen");
+    QAction* removeAction = contextMenu.addAction("Remove");
 
     // Show the context menu and get the selected action
     QAction* selectedAction = contextMenu.exec(QCursor::pos());
 
     // Process the selected action
     if (selectedAction) {
-        if (selectedAction == action1) {
-            // Handle Option 1
-        } else if (selectedAction == action2) {
-            // Handle Option 2
-        } else if (selectedAction == action3) {
-            // Handle Option 3
+        if (selectedAction == copyAction) {
+            // Get the clipboard
+            QClipboard *clipboard = QApplication::clipboard();
+
+            // Set the image to the clipboard
+            clipboard->setImage(mPixmap.toImage());
+
+        } else if (selectedAction == sharpenAction) {
+            mPixmap = sharpenImage(mPixmap);
+            update();
+        } else if (selectedAction == removeAction) {
+            emit removeRequested(this);
         }
     }
 }

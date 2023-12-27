@@ -18,15 +18,14 @@ find_package(OpenCV CONFIG REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
 )
+set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/resources/app_icon.rc")
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(FaceSpyder
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        ${app_icon_resource_windows}
         facerecognitionview.h facerecognitionview.cpp
         facedetectionview.h facedetectionview.cpp
         observer.h observer.cpp
@@ -37,11 +36,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         video.h video.cpp
         imagematching.h imagematching.cpp
         itemdetectedview.h itemdetectedview.cpp
-        authwindow.h authwindow.cpp authwindow.ui
-        spyderwindow.h spyderwindow.cpp spyderwindow.ui
+        spyderwindow.h spyderwindow.cpp
         menubutton.h menubutton.cpp
         videoplayer.h videoplayer.cpp
         facedetectionworker.h facedetectionworker.cpp
+        loadingwindow.h loadingwindow.cpp
+        mainwindow.h mainwindow.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET FaceSpyder APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -78,6 +78,10 @@ set_target_properties(FaceSpyder PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 target_precompile_headers(${PROJECT_NAME} PRIVATE pch.h)
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/resources/
+       DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resources/)
+
 
 include(GNUInstallDirs)
 install(TARGETS FaceSpyder

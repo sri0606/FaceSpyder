@@ -41,6 +41,16 @@ QPixmap MatToQPixmap(const cv::Mat& mat) {
     return pixmap;  // No need to ensure deep copy as QPixmap is implicitly shared
 }
 
+
+QPixmap sharpenImage(const QPixmap& pixmap) {
+    auto image = QPixmapToMat(pixmap);
+    cv::Mat blurred;
+    cv::GaussianBlur(image, blurred, cv::Size(0, 0), 3);
+    cv::Mat sharpened;
+    cv::addWeighted(image, 1.5, blurred, -0.5, 0, sharpened);
+    return MatToQPixmap(sharpened);
+}
+
 /**
 ** Feature matching in images usong OpenCV's SIFT and knn match
 */

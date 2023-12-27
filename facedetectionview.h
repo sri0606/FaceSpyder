@@ -13,24 +13,20 @@ class FaceDetectionView final : public QWidget, public Observer
 public:
     explicit FaceDetectionView(QWidget *parent = nullptr);
 
-signals:
+private slots:
+    void RemoveDetectedView(ItemDetectedView* view);
 private:
-
     virtual void paintEvent(QPaintEvent *event);
-
-    std::pair<int, int> GetNumofRowsCols(int contextWidth, int contextHeight);
     QGridLayout* mGridLayout;
-
-    //views of all the detected faces
-    std::vector<ItemDetectedView*> mDetectedViews;
-
+    int mViewCount=0;
 public:
     void UpdateObserver() override;
     virtual void addItemDetectedView(cv::Mat pixmap) override;
     void SaveDetectedFaces(const QString& folderPath);
     void cleanDetectedViews();
-    bool IsFacesDetected(){return mDetectedViews.size()!=0;}
+    bool IsFacesDetected();
     virtual void Clear() override;
+
 };
 
 #endif // FACEDETECTIONVIEW_H

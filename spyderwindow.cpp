@@ -1,19 +1,16 @@
 #include "spyderwindow.h"
-#include "ui_spyderwindow.h"
 #include "FaceRecognition.h"
 #include <QFileDialog>
 #include <QLabel>
 #include <QScrollArea>
 #include <QMessageBox>
+#include <QDesktopServices>
+#include <QUrl>
 #include <memory.h>
 
 SpyderWindow::SpyderWindow(QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::SpyderWindow)
 {
-    ui->setupUi(this);
-    showMaximized();
-
     auto containerLayout = new QHBoxLayout(this);
     containerLayout->setContentsMargins(0, 0, 0, 0);
     // Create the main layout (75% of coantinerLayout)
@@ -74,7 +71,13 @@ SpyderWindow::SpyderWindow(QWidget *parent)
     newSessionButton->setStyleSheet("background-color:green; font-size:15px; color:white;border-radius:5px;padding:10px");
     newSessionButton->setText("New Spyder Session...");
 
+    aboutButton = new QPushButton(this);
+    aboutButton->setStyleSheet("background-color:blue; font-size:15px; color:white;border-radius:5px;padding:10px");
+    aboutButton->setText("About FaceSpyder");
+
     menuBottomLayout->addWidget(newSessionButton);
+    menuBottomLayout->addSpacing(10);
+    menuBottomLayout->addWidget(aboutButton);
     menuBottomLayout->addSpacing(10);
     //menuBottomLayout->addWidget(settingsButton);
     menuBottomLayout->addSpacing(10);
@@ -95,12 +98,12 @@ SpyderWindow::SpyderWindow(QWidget *parent)
     connect(saveDetectedFacesButton, &MenuButton::clicked, this, &SpyderWindow::onSaveFacesButtonClicked);
     //connect(settingsButton, &MenuButton::clicked, this, &SpyderWindow::onSettingsButtonClicked);
     connect(newSessionButton, &QPushButton::clicked, this, &SpyderWindow::onNewSessionButtonClicked);
-
+    connect(aboutButton, &QPushButton::clicked, this, &SpyderWindow::onAboutButtonClicked);
 }
 
 SpyderWindow::~SpyderWindow()
 {
-    delete ui;
+
 }
 
 void SpyderWindow::onHomeButtonClicked() {
@@ -168,3 +171,27 @@ void SpyderWindow::onSaveFacesButtonClicked() {
         return;
     }
 }
+
+
+void SpyderWindow::onAboutButtonClicked(){
+    QMessageBox aboutBox;
+    aboutBox.setWindowTitle("About FaceSpyder");
+    QString description = "This is a face recognition app which enables users to load media elements like images and videos to detect faces. It also includes a feature to save the faces detected."
+                          "<br>For more detailed information, please visit our <a href='https://github.com/sri0606/FaceSpyder'>official project page</a>.";
+
+    aboutBox.setText(description);
+    // Add buttons
+    aboutBox.setStandardButtons(QMessageBox::Ok);
+    aboutBox.setDefaultButton(QMessageBox::Ok);
+
+    // Add an informative text with URLs
+    QString informativeText = "<a href='https://github.com/sri0606/FaceSpyder/issues'>Submit bug reports or feature requests here.</a><br>"
+                              "<br> Created by <a href='https://sri0606.github.io/'>Sriram Seelamneni</a>";
+    aboutBox.setInformativeText(informativeText);
+
+    // Enable Rich Text for URLs
+    aboutBox.setTextFormat(Qt::RichText);
+    // Display the about box
+    aboutBox.exec();
+}
+

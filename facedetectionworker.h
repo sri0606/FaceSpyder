@@ -18,8 +18,10 @@ public slots:
     void processImage();
     void processVideo();
 
+    void stopProcessing(){mShouldStop = true;}
 private:
     FaceRecognition* mFaceRecognition;
+    std::atomic<bool> mShouldStop=false;
 };
 
 #endif // FACEDETECTIONWORKER_H
