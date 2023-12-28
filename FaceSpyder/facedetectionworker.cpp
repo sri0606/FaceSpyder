@@ -6,7 +6,7 @@
 using namespace cv;
 
 const std::string faceCascadePath
-    = "C:/Program Files/opencv/sources/data/haarcascades/haarcascade_frontalface_default.xml";
+    = "resources/opencv/haarcascade_frontalface_default.xml";
 
 FaceDetectionWorker::FaceDetectionWorker(FaceRecognition *faceRecognition)
     : mFaceRecognition(faceRecognition)

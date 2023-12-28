@@ -146,7 +146,6 @@ bool hasFace(const cv::Mat &image)
         std::cerr << "Input image is empty." << std::endl;
         return false;
     }
-
     // Initialize face detection classifier
     cv::CascadeClassifier face_cascade;
     // Load pre-trained XML classifier for face detection
